@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Training Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --card: #1b1b1b;
+    --border: #262626;
+    --border-light: #2e2e2e;
+    --accent: #c8f542;
+    --accent-dim: rgba(200,245,66,0.13);
+    --accent-border: rgba(200,245,66,0.25);
+    --run: #5b9ef5;
+    --run-dim: rgba(91,158,245,0.12);
+    --run-border: rgba(91,158,245,0.25);
+    --mob: #f5a623;
+    --mob-dim: rgba(245,166,35,0.1);
+    --mob-border: rgba(245,166,35,0.25);
+    --text: #e0e0e0;
+    --dim: #aaa;
+    --muted: #5a5a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    padding: 2.2rem 1rem 5rem;
+  }
+
+  /* ── HEADER ── */
+  header {
+    max-width: 860px;
+    margin: 0 auto 2.2rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.2rem, 10vw, 5.5rem);
+    letter-spacing: 0.03em;
+    line-height: 0.88;
+    color: var(--accent);
+  }
+
+  .pills {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-self: flex-end;
+  }
+
+  .pill {
+    font-size: 0.67rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.22rem 0.6rem;
+    border-radius: 1px;
+  }
+
+  .pill span { color: var(--dim); }
+
+  /* ── WEEK ── */
+  .week {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* ── CHECKBOX TOGGLE SYSTEM ── */
+  /* Hide all checkboxes */
+  .toggle { display: none; }
+
+  /* Day wrapper */
+  .day {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--card);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  /* Label acts as the clickable header */
+  .day-head {
+    display: grid;
+    grid-template-columns: 115px 1fr 1.2rem;
+    align-items: center;
+    padding: 0.85rem 1.2rem;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .day-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+  }
+
+  /* Colour variants */
+  .gym   .day-name  { color: var(--accent); }
+  .run   .day-name  { color: var(--run); }
+  .combo .day-name  { color: var(--text); }
+  .mob   .day-name  { color: var(--mob); }
+  .rest  .day-name  { color: #303030; }
+
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tag {
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 0.16rem 0.5rem;
+    border-radius: 1px;
+  }
+
+  .t-gym  { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+  .t-run  { background: var(--run-dim);    color: var(--run);    border: 1px solid var(--run-border); }
+  .t-mob  { background: var(--mob-dim);    color: var(--mob);    border: 1px solid var(--mob-border); }
+  .t-rest { background: transparent;       color: #353535;       border: 1px solid #222; }
+
+  .focus {
+    font-size: 0.76rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-left: 0.1rem;
+  }
+
+  /* Chevron */
+  .chevron {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    opacity: 0.3;
+    transition: transform 0.25s, opacity 0.2s;
+  }
+
+  .rest .chevron { display: none; }
+
+  /* Body — hidden by default */
+  .day-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    border-top: 0px solid var(--border);
+  }
+
+  .day-body-inner {
+    padding: 1.3rem 1.2rem 1.5rem;
+  }
+
+  /* When checkbox is checked, reveal body */
+  .toggle:checked ~ .day .day-body {
+    max-height: 2000px;
+    border-top-width: 1px;
+  }
+
+  .toggle:checked ~ .day .chevron {
+    transform: rotate(180deg);
+    opacity: 0.6;
+  }
+
+  .toggle:checked ~ .day {
+    border-color: var(--border-light);
+  }
+
+  /* ── NOTES ── */
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--border);
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+  .note.a { border-color: var(--accent); color: #a0c030; background: rgba(200,245,66,0.03); }
+  .note.r { border-color: var(--run);    color: #7ab0f0; background: rgba(91,158,245,0.04); }
+  .note.m { border-color: var(--mob);    color: #c48a20; background: rgba(245,166,35,0.04); }
+
+  /* ── SECTIONS ── */
+  .section + .section { margin-top: 1.2rem; }
+
+  .sec-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.38rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── EXERCISES ── */
+  .ex-list { display: flex; flex-direction: column; gap: 0.28rem; }
+
+  .ex {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: start;
+    padding: 0.55rem 0.65rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 1px;
+    gap: 0.6rem;
+  }
+
+  .ex-name { font-size: 0.88rem; font-weight: 400; color: var(--text); }
+  .ex-tip  { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-top: 0.1rem; line-height: 1.4; }
+
+  .ex-sets {
+    font-size: 0.77rem;
+    font-weight: 500;
+    color: var(--accent);
+    white-space: nowrap;
+    padding-top: 0.1rem;
+    align-self: start;
+  }
+  .ex-sets.b { color: var(--run); }
+  .ex-sets.m { color: var(--mob); }
+
+  /* ── WEIGHT INPUT ── */
+  .w-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    align-self: start;
+    padding-top: 0.05rem;
+  }
+
+  .w-input {
+    width: 52px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 0.22rem 0.4rem;
+    text-align: right;
+    -moz-appearance: textfield;
+    -webkit-appearance: none;
+  }
+
+  .w-input::-webkit-outer-spin-button,
+  .w-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .w-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(200,245,66,0.06);
+    color: var(--accent);
+  }
+
+  .w-input::placeholder { color: #333; }
+
+  .w-unit {
+    font-size: 0.67rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── MOBILITY LIST ── */
+  .mob-list { display: flex; flex-direction: column; gap: 0.28rem; }
+
+  .mob-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    padding: 0.5rem 0.65rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 1px;
+    gap: 0.75rem;
+  }
+
+  .mob-name { font-size: 0.87rem; font-weight: 400; color: var(--text); }
+  .mob-tip  { font-size: 0.71rem; color: var(--muted); font-style: italic; margin-top: 0.1rem; line-height: 1.4; }
+  .mob-dur  { font-size: 0.77rem; font-weight: 500; color: var(--mob); white-space: nowrap; padding-top: 0.1rem; }
+
+  /* ── TIMING ── */
+  .timing {
+    margin-top: 1.15rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .t-item { font-size: 0.72rem; color: var(--muted); }
+  .t-item strong { color: var(--dim); font-weight: 500; }
+
+  /* ── LEGEND ── */
+  .legend {
+    max-width: 860px;
+    margin: 1.8rem auto 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; color: var(--muted); }
+  .ld { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── WEIGHT NOTE ── */
+  .weight-note {
+    max-width: 860px;
+    margin: 1rem auto 0;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>WEEKLY<br>PLAN</h1>
+  <div class="pills">
+    <div class="pill">Goal <span>Strength + Running</span></div>
+    <div class="pill">Gym <span>3 × week</span></div>
+    <div class="pill">Session <span>30–45 min</span></div>
+    <div class="pill">Mobility <span>2 × 15 min</span></div>
+  </div>
+</header>
+
+<div class="week">
+
+  <!-- ══ MONDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-mon" checked>
+  <div class="day combo">
+    <label class="day-head" for="t-mon">
+      <div class="day-name">Monday</div>
+      <div class="tags">
+        <span class="tag t-run">Easy Run · AM</span>
+        <span class="tag t-gym">Gym · PM</span>
+        <span class="focus">Lower body strength</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note r">Easy run in the morning leaves legs ready for an evening lift. Give yourself a few hours between, eat something, and stay hydrated.</div>
+        <div class="section">
+          <div class="sec-label">Warm-up — 5 min</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Leg press (light)</div><div class="ex-tip">Slow tempo, full range — wakes up knees and hips</div></div>
+              <div class="ex-sets">2 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sec-label">Main work — ~30 min</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Leg press machine</div><div class="ex-tip">Drive through the whole foot; don't lock knees at the top</div></div>
+              <div class="ex-sets">3 × 10–12</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Seated leg curl</div><div class="ex-tip">Hamstrings absorb force on every stride — one of the best running investments</div></div>
+              <div class="ex-sets">3 × 12</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Hip abductor machine</div><div class="ex-tip">Glute med strength — improves knee tracking and lateral stability</div></div>
+              <div class="ex-sets">3 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Seated calf raise machine</div><div class="ex-tip">Heel all the way down, pause at the top — protect the Achilles</div></div>
+              <div class="ex-sets">3 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Cable / machine hip extension</div><div class="ex-tip">Isolates glutes — drives the push-off in every stride</div></div>
+              <div class="ex-sets">3 × 12 each</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="timing">
+          <div class="t-item">Warm-up <strong>5 min</strong></div>
+          <div class="t-item">Main work <strong>~30 min</strong></div>
+          <div class="t-item">Rest between sets <strong>60–75 sec</strong></div>
+          <div class="t-item">Total <strong>~35–40 min</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TUESDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-tue" checked>
+  <div class="day mob">
+    <label class="day-head" for="t-tue">
+      <div class="day-name">Tuesday</div>
+      <div class="tags">
+        <span class="tag t-mob">Mobility · AM · 15 min</span>
+        <span class="focus">Post-run recovery focus</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note m">Light mobility work — legs will be tired from Monday's double session. Move slowly, breathe into each stretch, don't push range of motion past comfort.</div>
+        <div class="section">
+          <div class="sec-label">Routine — 15 min total</div>
+          <div class="mob-list">
+            <div class="mob-item">
+              <div><div class="mob-name">Hip flexor stretch (kneeling)</div><div class="mob-tip">Each side — counters the pull on the lower back from running</div></div>
+              <div class="mob-dur">60 sec each</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Seated hamstring stretch</div><div class="mob-tip">Legs extended, hinge from hips — don't round the back</div></div>
+              <div class="mob-dur">60 sec each</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Pigeon pose (or figure-4 on back)</div><div class="mob-tip">Deep glute stretch — essential after leg day</div></div>
+              <div class="mob-dur">90 sec each</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Calf stretch — straight + bent knee</div><div class="mob-tip">Straight = gastrocnemius, bent = soleus — do both</div></div>
+              <div class="mob-dur">45 sec each × 2</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Thoracic rotation (seated or lying)</div><div class="mob-tip">Opens the upper back — counteracts the running hunch</div></div>
+              <div class="mob-dur">8 reps each side</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Dead bug (slow)</div><div class="mob-tip">Low-load core activation — keeps deep stabilisers engaged without fatigue</div></div>
+              <div class="mob-dur">2 × 8 each side</div>
+            </div>
+          </div>
+        </div>
+        <div class="timing">
+          <div class="t-item">Total <strong>~15 min</strong></div>
+          <div class="t-item">Equipment <strong>None — floor only</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ WEDNESDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-wed">
+  <div class="day run">
+    <label class="day-head" for="t-wed">
+      <div class="day-name">Wednesday</div>
+      <div class="tags">
+        <span class="tag t-run">Hard Run · AM</span>
+        <span class="focus">No gym — full effort run day</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note r">Hard run day — intervals, tempo, or threshold work. No gym. Let the body direct everything at quality running. Eat and sleep well tonight ahead of Thursday's gym session.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ THURSDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-thu" checked>
+  <div class="day gym">
+    <label class="day-head" for="t-thu">
+      <div class="day-name">Thursday</div>
+      <div class="tags">
+        <span class="tag t-gym">Gym · AM</span>
+        <span class="focus">Upper body + core</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note a">Legs recovering from Wednesday's hard effort — upper body and core only. Keeps your legs fresh for Saturday's long run.</div>
+        <div class="section">
+          <div class="sec-label">Warm-up — 3–5 min</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Rowing machine</div><div class="ex-tip">Light pace — opens shoulders and upper back, lifts heart rate gently</div></div>
+              <div class="ex-sets">3–5 min</div>
+              <div class="w-wrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sec-label">Main work — ~28–32 min</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Seated cable row</div><div class="ex-tip">Builds the upper back posture muscles that hold form over long miles</div></div>
+              <div class="ex-sets">3 × 12</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Chest press machine</div><div class="ex-tip">Balanced push strength — pairs with the rowing movement</div></div>
+              <div class="ex-sets">3 × 12</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Lat pulldown machine</div><div class="ex-tip">Lean slightly back; drive elbows down — engage the lats fully</div></div>
+              <div class="ex-sets">3 × 12</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Rotary torso machine</div><div class="ex-tip">Seated rotation, isolates obliques — trains the twisting motion in running</div></div>
+              <div class="ex-sets">3 × 10 each</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Ab crunch machine</div><div class="ex-tip">Core endurance keeps you upright and efficient in the final miles</div></div>
+              <div class="ex-sets">3 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="timing">
+          <div class="t-item">Warm-up <strong>3–5 min</strong></div>
+          <div class="t-item">Main work <strong>~28–32 min</strong></div>
+          <div class="t-item">Rest between sets <strong>60 sec</strong></div>
+          <div class="t-item">Total <strong>~32–38 min</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FRIDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-fri" checked>
+  <div class="day mob">
+    <label class="day-head" for="t-fri">
+      <div class="day-name">Friday</div>
+      <div class="tags">
+        <span class="tag t-mob">Mobility · AM · 15 min</span>
+        <span class="focus">Pre-long run prep</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note m">Keep this gentle — legs need to be fresh for tomorrow. Focus on opening the hips and loosening anything tight. No intensity, no fatigue.</div>
+        <div class="section">
+          <div class="sec-label">Routine — 15 min total</div>
+          <div class="mob-list">
+            <div class="mob-item">
+              <div><div class="mob-name">Leg swings (front/back + lateral)</div><div class="mob-tip">Dynamic — gets the hip joint moving through full range before tomorrow</div></div>
+              <div class="mob-dur">10 each direction</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Hip flexor stretch (kneeling)</div><div class="mob-tip">Key before a long run — opens up stride length</div></div>
+              <div class="mob-dur">60 sec each</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">World's greatest stretch</div><div class="mob-tip">Lunge + thoracic rotation in one — excellent full-body prep movement</div></div>
+              <div class="mob-dur">5 reps each side</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Glute bridge (bodyweight)</div><div class="mob-tip">Activates glutes before they're needed tomorrow — slow and deliberate</div></div>
+              <div class="mob-dur">2 × 12</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Ankle circles + calf stretch</div><div class="mob-tip">Mobilises the ankle — important for long run efficiency</div></div>
+              <div class="mob-dur">30 sec each</div>
+            </div>
+            <div class="mob-item">
+              <div><div class="mob-name">Child's pose + thoracic extension</div><div class="mob-tip">Decompress the lower back and open the upper back — finish calm</div></div>
+              <div class="mob-dur">60–90 sec</div>
+            </div>
+          </div>
+        </div>
+        <div class="timing">
+          <div class="t-item">Total <strong>~15 min</strong></div>
+          <div class="t-item">Equipment <strong>None — floor only</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SATURDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-sat">
+  <div class="day run">
+    <label class="day-head" for="t-sat">
+      <div class="day-name">Saturday</div>
+      <div class="tags">
+        <span class="tag t-run">Long Run · AM</span>
+        <span class="focus">No gym — biggest session of the week</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note r">Your long run — this takes priority above everything. No gym today. Focus on pacing, fuelling during the run, and recovery after. A good post-run meal (protein + carbs) will make Sunday's session feel much better.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SUNDAY ══ -->
+  <input type="checkbox" class="toggle" id="t-sun" checked>
+  <div class="day gym">
+    <label class="day-head" for="t-sun">
+      <div class="day-name">Sunday</div>
+      <div class="tags">
+        <span class="tag t-gym">Gym · AM</span>
+        <span class="focus">Full body — light load, active recovery</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </label>
+    <div class="day-body">
+      <div class="day-body-inner">
+        <div class="note a">Day after the long run — deliberately lighter. Keep moving, flush out soreness, reinforce running-specific strength without digging a recovery hole before Monday.</div>
+        <div class="section">
+          <div class="sec-label">Warm-up — 5 min</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Recumbent bike or elliptical</div><div class="ex-tip">Low impact — gets blood moving through tired legs</div></div>
+              <div class="ex-sets b">5 min easy</div>
+              <div class="w-wrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="sec-label">Main work — ~25 min (lighter weight, higher rep)</div>
+          <div class="ex-list">
+            <div class="ex">
+              <div><div class="ex-name">Leg press machine</div><div class="ex-tip">~60–70% of Monday's weight — flush the legs, don't load them</div></div>
+              <div class="ex-sets b">2 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Hip abductor machine</div><div class="ex-tip">Light and controlled — glute med recovery and stability work</div></div>
+              <div class="ex-sets b">2 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Seated cable row</div><div class="ex-tip">Upper back reset — counters the forward hunch that builds on long runs</div></div>
+              <div class="ex-sets b">2 × 15</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Cable hip flexor raise</div><div class="ex-tip">Hip flexors take a battering on long runs — strengthen through the full range</div></div>
+              <div class="ex-sets b">2 × 12 each</div>
+              <div class="w-wrap"><input class="w-input" type="number" min="0" placeholder="—"><span class="w-unit">kg</span></div>
+            </div>
+            <div class="ex">
+              <div><div class="ex-name">Dead bug (slow, controlled)</div><div class="ex-tip">Low-load rotational core — finishes the session without fatigue cost</div></div>
+              <div class="ex-sets b">2 × 10 each</div>
+              <div class="w-wrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="timing">
+          <div class="t-item">Warm-up <strong>5 min</strong></div>
+          <div class="t-item">Main work <strong>~25 min</strong></div>
+          <div class="t-item">Rest between sets <strong>45–60 sec</strong></div>
+          <div class="t-item">Total <strong>~30–35 min</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .week -->
+
+<div class="legend">
+  <div class="legend-item"><div class="ld" style="background:var(--accent)"></div>Gym session</div>
+  <div class="legend-item"><div class="ld" style="background:var(--run)"></div>Run session</div>
+  <div class="legend-item"><div class="ld" style="background:var(--mob)"></div>Mobility session</div>
+</div>
+
+<p class="weight-note">Weights entered above are saved in the fields for reference during your session. Tap any day header to collapse or expand it.</p>
+
+<script>
+(function(){
+  const STORAGE_KEY_PREFIX = "workout_weight_";
+
+  function save(key, value) {
+    try {
+      localStorage.setItem(STORAGE_KEY_PREFIX + key, value);
+    } catch (e) {}
+  }
+
+  function load(key) {
+    try {
+      return localStorage.getItem(STORAGE_KEY_PREFIX + key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputs = document.querySelectorAll(".w-input");
+
+    inputs.forEach((input, index) => {
+      // Create stable unique key based on exercise text
+      let label = input.closest(".ex")?.innerText || index;
+      let key = label.replace(/\s+/g, "_").toLowerCase().slice(0,50);
+
+      // Load saved value
+      const saved = load(key);
+      if (saved !== null) input.value = saved;
+
+      // Save on input
+      input.addEventListener("input", () => {
+        save(key, input.value);
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
